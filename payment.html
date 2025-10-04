@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - Secure Payment (INR)</title>
+    
+    <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
+
+    <style>
+        /* Basic CSS for a clean look and responsive layout */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-wrap: wrap; 
+            gap: 30px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            width: 100%;
+        }
+        .payment-form, .order-summary {
+            flex: 1;
+            min-width: 300px; 
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+        }
+        .order-summary {
+            background-color: #f9f9f9;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input[type="text"], input[type="email"], select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box; 
+        }
+        .card-details {
+            display: flex;
+            gap: 15px;
+        }
+        .card-details > div {
+            flex: 1;
+        }
+        .btn-pay {
+            background-color: #059669; /* Success Green */
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            margin-top: 20px;
+        }
+        .btn-pay:hover {
+            background-color: #047857;
+        }
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px dashed #eee;
+        }
+        .summary-total {
+            font-size: 1.2em;
+            font-weight: bold;
+            padding-top: 15px;
+            color: #333;
+        }
+        /* QR Code Styling */
+        #qrcode {
+            text-align: center;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #fff;
+            margin-top: 15px;
+        }
+        #qrcode img {
+            margin: 0 auto;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Secure Checkout (INR)</h1>
+
+    <div class="container">
+        
+        <div class="payment-form">
+            <h2>Credit/Debit Card Details</h2>
+            <form action="confirmation.html" method="POST">
+                
+                <div class="form-group">
+                    <label for="name">Name on Card</label>
+                    <input type="text" id="name" name="card_name" placeholder="John A. Doe" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="card_number">Card Number</label>
+                    <input type="text" id="card_number" name="card_number" placeholder="XXXX XXXX XXXX XXXX" required maxlength="16">
+                </div>
+                
+                <div class="card-details">
+                    <div class="form-group">
+                        <label for="expiry">Expiry Date (MM/YY)</label>
+                        <input type="text" id="expiry" name="expiry" placeholder="01/25" required maxlength="5">
+                    </div>
+                    <div class="form-group">
+                        <label for="cvv">CVV</label>
+                        <input type="text" id="cvv" name="cvv" placeholder="123" required maxlength="3">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" placeholder="email@example.com" required>
+                </div>
+
+                <button type="submit" class="btn-pay">
+                    Pay ₹<span id="button-total-amount">0.00</span> Now
+                </button>
+            </form>
+        </div>
+
+        <div class="order-summary">
+            <h2>Payment Summary</h2>
+            
+            <div class="summary-item">
+                <span>Items Subtotal</span>
+                <span id="subtotal-amount">₹0.00</span>
+            </div>
+            <div class="summary-item">
+                <span>GST (18%)</span>
+                <span id="tax-amount">₹0.00</span>
+            </div>
+            
+            <div class="summary-total summary-item">
+                <span>Order Total (Final)</span>
+                <span id="display-total-amount">₹0.00</span>
+            </div>
+
+            <h3 style="margin-top: 25px; text-align: center; color: #555;">Scan UPI QR Code</h3>
+            
+            <div id="qrcode"></div>
+            
+            <p style="text-align: center; margin-top: 20px; font-size: 0.9em; color: green;">
+                &#128274; All transactions are secure.
+            </p>
+        </div>
+
+    </div>
+
+    <script>
+        function generateQRCode() {
+            // --- 1. Get the Subtotal Amount from the URL Query String ---
+            const urlParams = new URLSearchParams(window.location.search);
+            // Get the 'total' parameter from cart.html (which is the subtotal)
+            let subtotalString = urlParams.get('total') || '0.00'; 
+            
+            const SUB_TOTAL = parseFloat(subtotalString);
+            const TAX_RATE = 0.18; // 18%
+
+            if (isNaN(SUB_TOTAL) || SUB_TOTAL <= 0) {
+                 console.error("Invalid or missing subtotal amount in URL.");
+                 subtotalString = '0.00';
+            }
+            
+            // --- 2. Calculate Tax and Final Total ---
+            const TAX_AMOUNT = SUB_TOTAL * TAX_RATE;
+            const FINAL_TOTAL = SUB_TOTAL + TAX_AMOUNT;
+
+            // --- 3. Format all numbers to 2 decimal places ---
+            const formattedSubtotal = `₹${SUB_TOTAL.toFixed(2)}`;
+            const formattedTax = `₹${TAX_AMOUNT.toFixed(2)}`;
+            const formattedFinalTotal = `₹${FINAL_TOTAL.toFixed(2)}`;
+            
+            // --- 4. Update all displays on the payment page ---
+            document.getElementById('subtotal-amount').textContent = formattedSubtotal;
+            document.getElementById('tax-amount').textContent = formattedTax;
+            
+            // Update the Final Total displays
+            document.getElementById('display-total-amount').textContent = formattedFinalTotal;
+            document.getElementById('button-total-amount').textContent = FINAL_TOTAL.toFixed(2);
+
+
+            // --- 5. Generate the QR Code using the FINAL_TOTAL ---
+            const qrData = "INR_PAYMENT:" + FINAL_TOTAL.toFixed(2); 
+            
+            new QRCode(document.getElementById("qrcode"), {
+                text: qrData,
+                width: 150,
+                height: 150,
+                colorDark : "#000000",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.H
+            });
+            
+            console.log("QR Code generated for final total:", qrData);
+        }
+
+        // Run the function when the page finishes loading
+        window.onload = generateQRCode;
+    </script>
+
+</body>
+</html>

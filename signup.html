@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CuraLife - Sign Up</title>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans&display=swap" rel="stylesheet" />
+  <style>
+    body { font-family: 'Open Sans', sans-serif; background: #f8fafc; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+    .form-container { background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 0 15px rgba(0,0,0,0.1); width: 320px; }
+    h2 { margin-bottom: 1.5rem; color: #0c4a6e; text-align: center; }
+    label { display: block; margin-bottom: 0.5rem; font-weight: 600; color: #374151; }
+    input { width: 100%; padding: 0.6rem; margin-bottom: 1rem; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; }
+    button { width: 100%; padding: 0.7rem; background: #0891b2; color: white; border: none; border-radius: 6px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: background-color 0.3s ease; }
+    button:hover { background: #0c4a6e; }
+    .message { text-align: center; color: #dc2626; margin-top: 1rem; }
+    .success-message { color: #059669; }
+
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.5);
+        justify-content: center;
+        align-items: center;
+    }
+    .modal-content {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+    .modal-content button {
+        margin-top: 10px;
+        background-color: #0c4a6e;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="form-container">
+    <h2>Sign Up</h2>
+    <form id="signup-form">
+      <label for="name">Name</label>
+      <input type="text" id="name" name="name" required />
+      
+      <label for="age">Age</label>
+      <input type="number" id="age" name="age" required />
+
+      <label for="address">Delivery Address</label>
+      <input type="text" id="address" name="address" required />
+
+      <label for="paymentMode">Preferred Payment Mode</label>
+      <select id="paymentMode" name="paymentMode" required>
+        <option value="upi">UPI</option>
+        <option value="netbanking-upi">Netbanking</option>
+      </select>
+
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email" required />
+
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" required />
+
+      <label for="confirm-password">Confirm Password</label>
+      <input type="password" id="confirm-password" name="confirm-password" required />
+
+      <button type="submit">Sign Up</button>
+    </form>
+    <div id="message" class="message"></div>
+    <div style="text-align: center; margin-top: 1rem;">
+      Already have an account? <a href="login.html" style="color: #0c4a6e; text-decoration: none;">Login</a>
+    </div>
+  </div>
+
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <p id="modal-text"></p>
+      <button onclick="closeModal()">OK</button>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, doc, setDoc, setLogLevel } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    setLogLevel('Debug');
+    
+    // Global variables provided by the environment
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+    const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+    const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    async function initializeAuth() {
+      try {
+        if (initialAuthToken) {
+          await signInWithCustomToken(auth, initialAuthToken);
+        } else {
+          await signInAnonymously(auth);
+        }
+      } catch (error) {
+        console.error("Firebase Auth initialization error:", error);
+      }
+    }
+
+    initializeAuth();
+
+    function showModal(message) {
+      document.getElementById('modal-text').textContent = message;
+      document.getElementById('modal').style.display = 'flex';
+    }
+
+    window.closeModal = function() {
+      document.getElementById('modal').style.display = 'none';
+    }
+
+    const form = document.getElementById('signup-form');
+    const messageDiv = document.getElementById('message');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      messageDiv.textContent = '';
+
+      const name = form.name.value.trim();
+      const age = parseInt(form.age.value);
+      const address = form.address.value.trim();
+      const paymentMode = form.paymentMode.value;
+      const email = form.email.value.trim();
+      const password = form.password.value;
+      const confirmPassword = form['confirm-password'].value;
+
+      if (password !== confirmPassword) {
+        messageDiv.textContent = 'Passwords do not match';
+        return;
+      }
+
+      if (password.length < 6) {
+        messageDiv.textContent = 'Password must be at least 6 characters';
+        return;
+      }
+
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const uid = userCredential.user.uid;
+
+        // Save additional user info in Firestore
+        const userDocRef = doc(db, `/artifacts/${appId}/users/${uid}/userData/profile`);
+        await setDoc(userDocRef, {
+          name,
+          age,
+          deliveryAddress: address,
+          paymentMode,
+          email,
+          createdAt: new Date()
+        });
+        
+        showModal('Registration successful! Please login.');
+        setTimeout(() => {
+            window.location.href = 'login.html';
+        }, 2000);
+      } catch (error) {
+        let errorMessage = 'An error occurred during registration.';
+        if (error.code === 'auth/email-already-in-use') {
+          errorMessage = 'The email address is already in use.';
+        } else {
+          console.error('Registration error:', error);
+        }
+        messageDiv.textContent = errorMessage;
+      }
+    });
+  </script>
+</body>
+</html>

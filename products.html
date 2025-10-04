@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CuraLife - Products</title>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary: #0c4a6e;
+      --primary-light: #0891b2;
+      --secondary: #059669;
+      --accent: #dc2626;
+      --text: #2d3748;
+      --text-light: #64748b;
+      --background: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #e5e7eb;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Open Sans', sans-serif;
+      background-color: var(--background);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    header {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+      color: white;
+      padding: 1rem 2rem;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .header-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .site-title {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: white;
+    }
+    .navigation {
+      display: flex;
+      gap: 1.5rem;
+      align-items: center;
+    }
+    .nav-link {
+      color: white;
+      text-decoration: none;
+      font-weight: 600;
+      padding: 0.5rem 1rem;
+      border-radius: 25px;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    .nav-link:hover {
+      background: rgba(255,255,255,0.2);
+      transform: translateY(-2px);
+    }
+    .cart-count {
+      position: relative;
+    }
+    .cart-count::after {
+      content: attr(data-count);
+      background: var(--accent);
+      color: white;
+      font-size: 0.75rem;
+      padding: 0.2rem 0.5rem;
+      border-radius: 50%;
+      position: absolute;
+      top: -8px;
+      right: -5px;
+      min-width: 20px;
+      text-align: center;
+    }
+    main {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 2rem;
+    }
+    .product-card {
+      background: var(--card-bg);
+      border-radius: 6px;
+      padding: 0.4rem;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      cursor: pointer;
+    }
+    .product-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    }
+    .product-image {
+      width: 100%;
+      height: 70px;
+      object-fit: cover;
+      border-radius: 6px;
+      margin-bottom: 0.4rem;
+    }
+    .product-name {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: 0.1rem;
+    }
+    .product-desc {
+      font-size: 0.6rem;
+      color: var(--text-light);
+      margin-bottom: 0.4rem;
+      line-height: 1.2;
+      flex-grow: 1;
+    }
+    .product-price {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--secondary);
+      margin-bottom: 0.4rem;
+    }
+    .btn {
+      padding: 0.3rem 0.6rem;
+      border: none;
+      border-radius: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: var(--primary-light);
+      color: white;
+      text-align: center;
+      font-size: 0.7rem;
+    }
+    .btn:hover {
+      background: var(--primary);
+    }
+    .message {
+      margin: 1rem 0;
+      color: var(--accent);
+      font-weight: 600;
+      text-align: center;
+    }
+    .search-container {
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+    .search-container input {
+      width: 100%;
+      max-width: 400px;
+      padding: 0.6rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      font-size: 0.9rem;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      transition: all 0.3s ease;
+    }
+    .search-container input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(8, 145, 178, 0.2);
+    }
+    .product-detail-view {
+      display: none;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 2rem;
+      background: var(--card-bg);
+      border-radius: 10px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    .product-detail-image {
+      width: 100%;
+      max-height: 250px;
+      object-fit: contain;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+    }
+    .product-detail-name {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+    }
+    .product-detail-desc {
+      font-size: 1rem;
+      color: var(--text-light);
+      margin-bottom: 1rem;
+    }
+    .product-detail-price {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--secondary);
+      margin-bottom: 1.5rem;
+    }
+    .product-detail-actions {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    .back-btn {
+      padding: 0.6rem 1.2rem;
+      background: var(--text-light);
+      color: white;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    .back-btn:hover {
+      background: var(--text);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <h1 class="site-title">CuraLife</h1>
+      <div class="navigation">
+        <a href="index.html" class="nav-link">Home</a>
+        <a href="products.html" class="nav-link">Products</a>
+        <a href="cart.html" class="nav-link cart-count" data-count="0">Cart</a>
+        <a href="login.html" class="nav-link" id="auth-link">Login</a>
+        <span id="user-info" style="color: white; margin-left: 10px;"></span>
+        <a href="admin.html" class="nav-link" id="admin-link" style="display: none;">Admin</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div id="product-list-view">
+      <h2 style="text-align:center; margin-bottom: 1rem; font-size: 1.2rem;">Our Products</h2>
+      <div class="search-container">
+        <input type="text" id="search-bar" placeholder="Search for products...">
+      </div>
+      <div class="products-grid" id="products-grid"></div>
+      <div class="message" id="message"></div>
+    </div>
+
+    <div id="product-detail-view" class="product-detail-view">
+      <img id="detail-image" class="product-detail-image" />
+      <h3 id="detail-name" class="product-detail-name"></h3>
+      <p id="detail-desc" class="product-detail-desc"></p>
+      <div id="detail-price" class="product-detail-price"></div>
+      <div class="product-detail-actions">
+        <button class="back-btn" onclick="showProductList()">Back to Products</button>
+        <button id="add-to-cart-detail-btn" class="btn">Add to Cart</button>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+
+  <script>
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyCq4DizgVzK3zOOdh--tkmSqlgNtd2GteI",
+      authDomain: "medishop-27098.firebaseapp.com",
+      projectId: "medishop-27098",
+      storageBucket: "medishop-27098.firebasestorage.app",
+      messagingSenderId: "880890490800",
+      appId: "1:880890490800:web:d4c03c5cc83720ef723075",
+      databaseURL: "https://medishop-27098-default-rtdb.firebaseio.com/"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    const authLink = document.getElementById('auth-link');
+    const userInfo = document.getElementById('user-info');
+    const adminLink = document.getElementById('admin-link');
+    const productsGrid = document.getElementById('products-grid');
+    const message = document.getElementById('message');
+    const searchBar = document.getElementById('search-bar');
+    const cartCountElement = document.querySelector('.cart-count');
+
+    const productListView = document.getElementById('product-list-view');
+    const productDetailView = document.getElementById('product-detail-view');
+    const detailImage = document.getElementById('detail-image');
+    const detailName = document.getElementById('detail-name');
+    const detailDesc = document.getElementById('detail-desc');
+    const detailPrice = document.getElementById('detail-price');
+    const addToCartDetailBtn = document.getElementById('add-to-cart-detail-btn');
+
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        authLink.textContent = 'Logout';
+        authLink.href = '#';
+        authLink.onclick = e => {
+          e.preventDefault();
+          auth.signOut().then(() => {
+            alert('Logged out successfully');
+            window.location.href = 'products.html';
+          });
+        };
+        userInfo.textContent = `Hello, ${user.email}`;
+        if (user.email === 'admin@curalife.com') {
+          adminLink.style.display = 'inline-block';
+        } else {
+          adminLink.style.display = 'none';
+        }
+      } else {
+        authLink.textContent = 'Login';
+        authLink.href = 'login.html';
+        authLink.onclick = null;
+        userInfo.textContent = '';
+        if (adminLink) adminLink.style.display = 'none';
+      }
+    });
+
+    // Sample products data
+    const products = [
+    {
+        id: 1,
+        name: "Digital Thermometer",
+        description: "Accurate and fast temperature readings for all ages with easy-to-read display.",
+        price: 299,
+        // CHANGED: Use a relative path to the local image folder
+        image: "images/thermometer.jpg" 
+    },
+    {
+        id: 2,
+        name: "Blood Pressure Monitor",
+        description: "Monitor your blood pressure easily at home with this reliable device.",
+        price: 499,
+        // CHANGED: Use a relative path to the local image folder
+        image: "images/bloodpressuremonitor.jpg" 
+    },
+    {
+        id: 3,
+        name: "Pulse Oximeter",
+        description: "Check your oxygen saturation and pulse rate instantly with this portable device.",
+        price: 799,
+        // CHANGED: Use a relative path to the local image folder
+        image: "images/pulse_oximeter.jpg" 
+    },
+    {
+        id: 4,
+        name: "Compact First Aid Kit",
+        description: "A comprehensive kit with essential supplies for minor injuries and emergencies.",
+        price: 349,
+        // CHANGED: Use a relative path to the local image folder
+        image: "images/first_aid_kit.jpg" 
+    }
+];
+    function updateCartCount() {
+      const cart = JSON.parse(localStorage.getItem('cart') || '{}');
+      const count = Object.values(cart).reduce((acc, val) => acc + val, 0);
+      cartCountElement.setAttribute('data-count', count);
+    }
+
+    function addToCart(productId) {
+      const cart = JSON.parse(localStorage.getItem('cart') || '{}');
+      cart[productId] = (cart[productId] || 0) + 1;
+      localStorage.setItem('cart', JSON.stringify(cart));
+      updateCartCount();
+      message.textContent = 'Product added to cart!';
+      setTimeout(() => { message.textContent = ''; }, 3000);
+    }
+
+    function showProductList() {
+      productListView.style.display = 'block';
+      productDetailView.style.display = 'none';
+      message.textContent = '';
+    }
+
+    function showProductDetail(productId) {
+      const product = products.find(p => p.id === productId);
+      if (!product) return;
+      
+      productListView.style.display = 'none';
+      productDetailView.style.display = 'block';
+
+      detailImage.src = product.image;
+      detailImage.alt = product.name;
+      detailName.textContent = product.name;
+      detailDesc.textContent = product.description;
+      detailPrice.textContent = `₹${product.price}`;
+      addToCartDetailBtn.onclick = () => addToCart(product.id);
+    }
+
+    function renderProducts(productsToRender) {
+      productsGrid.innerHTML = '';
+      if (productsToRender.length === 0) {
+        message.textContent = 'No products found.';
+      } else {
+        message.textContent = '';
+        productsToRender.forEach(product => {
+          const card = document.createElement('div');
+          card.className = 'product-card';
+          card.innerHTML = `
+            <img src="${product.image}" alt="${product.name}" class="product-image" />
+            <h3 class="product-name">${product.name}</h3>
+            <p class="product-desc">${product.description}</p>
+            <div class="product-price">₹${product.price}</div>
+            <button class="btn" onclick="event.stopPropagation(); addToCart(${product.id});">Add to Cart</button>
+          `;
+          card.onclick = () => showProductDetail(product.id);
+          productsGrid.appendChild(card);
+        });
+      }
+    }
+    
+    // Search functionality
+    searchBar.addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase();
+        const filteredProducts = products.filter(product => {
+            return product.name.toLowerCase().includes(searchTerm) || 
+                   product.description.toLowerCase().includes(searchTerm);
+        });
+        renderProducts(filteredProducts);
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderProducts(products); // Initial render
+      updateCartCount();
+    });
+  </script>
+</body>
+</html>
